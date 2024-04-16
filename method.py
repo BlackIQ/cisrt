@@ -1,27 +1,27 @@
 import time
 import re
 
-def showArp(shell, ip):
-    shell.send(f"show arp {ip}\n")
-    time.sleep(1)
-    text = shell.recv(65535).decode("utf-8")
+def showArp(ssh, ip):
+    stdin, stdout, stderr = ssh.exec_command(f"show arp {ip}\n")
+    stdout.channel.recv_exit_status()
+    text = stdout.read().decode("utf-8")
     mac_pattern = r'\s*([0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})'
     return re.findall(mac_pattern, text)
 
-def showMacAddressTable(shell, mac):
+def showMacAddressTable(ssh, mac):
     result = {}
-    shell.send(f"show mac address-table | include {mac}\n")
-    time.sleep(1)
-    text = shell.recv(65535).decode("utf-8")
+    stdin, stdout, stderr = ssh.exec_command(f"show mac address-table | include {mac}\n")
+    stdout.channel.recv_exit_status()
+    text = stdout.read().decode("utf-8")
     result['text'] = text
     result['port'] = re.findall(r'\w+\/(?:\w+\/)*\w+', text)
     return result
     
-def showCdpNeighborsDetails(shell, port):
+def showCdpNeighborsDetails(ssh, port):
     result = {}
-    shell.send(f"show cdp neighbors {port} detail\n")
-    time.sleep(1)
-    text = shell.recv(65535).decode("utf-8")
+    stdin, stdout, stderr = ssh.exec_command(f"show cdp neighbors {port} detail\n")
+    stdout.channel.recv_exit_status()
+    text = stdout.read().decode("utf-8")
     ip_pattern = r'\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
     result['ip'] = re.findall(ip_pattern, text)
     return result
